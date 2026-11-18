@@ -1,0 +1,48 @@
+.name: shae-prolog-family-tree
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SWI-Prolog
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y swipl
+
+      - name: Run syntax check + queries (make test)
+        run: make test
+
+      - name: Build source archive
+        run: |
+          mkdir -p dist
+          tar czf dist/shae-prolog-family-tree-0.1.0-src.tar.gz \
+            --exclude='.git' \
+            src scripts Makefile README.md DESIGN.md LICENSE docs .github
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.0 \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "shae-prolog-family-tree v0.1.0" \
+            --notes "Initial release. Prolog family-tree reasoning system.
+
+Facts: parent/2, male/1, female/1.
+Rules: mother/2, father/2, sister/2, brother/2, aunt/2, uncle/2,
+grandparent/2, ancestor/2, cousin/2, siblings/2.
+
+Sample family: 12 people across 3 generations.
+
+Requires SWI-Prolog or GNU Prolog. See README.md for example queries." \
+            dist/shae-prolog-family-tree-0.1.0-src.tar.gz

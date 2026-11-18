@@ -1,0 +1,8 @@
+# Prolog
+*.plc
+*.po
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
